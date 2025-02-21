@@ -1,53 +1,94 @@
-import { useState } from "react";
-import { Select, Button, Input } from "@/components/ui";
+import React, { useState } from "react";
 
-export default function App() {
+const App = () => {
   const [jsonInput, setJsonInput] = useState("");
-  const [response, setResponse] = useState(null);
-  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [responseData, setResponseData] = useState(null);
+  const [error, setError] = useState("");
+  const [selectedFilters, setSelectedFilters] = useState([]);
 
+  // API URL (Make sure it's correct)
+  const API_URL = "https://your-backend-url.com/bfhl"; // Change this to your actual backend URL
+
+  // Function to handle JSON input change
+  const handleInputChange = (e) => {
+    setJsonInput(e.target.value);
+    setError(""); // Clear previous errors
+  };
+
+  // Validate and send request
   const handleSubmit = async () => {
     try {
-      const parsedData = JSON.parse(jsonInput);
-      const res = await fetch("https://fastapi-backend-pxh3.onrender.com", {
+      const parsedData = JSON.parse(jsonInput); // Parse the input JSON
+
+      if (!parsedData.data || !Array.isArray(parsedData.data)) {
+        throw new Error("Invalid JSON format. Expected { data: [...] }");
+      }
+
+      const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsedData),
       });
-      const data = await res.json();
-      setResponse(data);
-    } catch (error) {
-      alert("Invalid JSON or API error");
+
+      const data = await response.json();
+      setResponseData(data);
+      setError(""); // Clear errors
+    } catch (err) {
+      setError(err.message);
+      setResponseData(null);
     }
   };
 
+  // Function to handle dropdown selection
+  const handleFilterChange = (event) => {
+    const { value } = event.target;
+    setSelectedFilters((prev) =>
+      prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
+    );
+  };
+
+  // Function to filter response data
+  const getFilteredResponse = () => {
+    if (!responseData) return null;
+
+    let filteredData = {};
+    if (selectedFilters.includes("Numbers")) filteredData.numbers = responseData.numbers;
+    if (selectedFilters.includes("Alphabets")) filteredData.alphabets = responseData.alphabets;
+    if (selectedFilters.includes("Highest Alphabet"))
+      filteredData.highest_alphabet = responseData.highest_alphabet;
+
+    return filteredData;
+  };
+
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-xl font-bold">ABCD123</h1>
-      <Input
-        placeholder="Enter JSON here"
+    <div style={{ textAlign: "center", padding: "20px" }}>
+      <h1>Backend Data Processor</h1>
+      <textarea
+        placeholder='Enter JSON here...'
         value={jsonInput}
-        onChange={(e) => setJsonInput(e.target.value)}
+        onChange={handleInputChange}
+        rows={5}
+        cols={50}
       />
-      <Button onClick={handleSubmit}>Submit</Button>
-      {response && (
-        <Select
-          multiple
-          options={["Alphabets", "Numbers", "Highest Alphabet"]}
-          onChange={setSelectedOptions}
-        />
+      <br />
+      <button onClick={handleSubmit}>Submit</button>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {responseData && (
+        <>
+          <h3>Filter Response</h3>
+          <select onChange={handleFilterChange}>
+            <option value="Numbers">Numbers</option>
+            <option value="Alphabets">Alphabets</option>
+            <option value="Highest Alphabet">Highest Alphabet</option>
+          </select>
+
+          <pre>{JSON.stringify(getFilteredResponse(), null, 2)}</pre>
+        </>
       )}
-      <div>
-        {selectedOptions.includes("Numbers") && (
-          <p>Numbers: {JSON.stringify(response?.numbers)}</p>
-        )}
-        {selectedOptions.includes("Alphabets") && (
-          <p>Alphabets: {JSON.stringify(response?.alphabets)}</p>
-        )}
-        {selectedOptions.includes("Highest Alphabet") && (
-          <p>Highest Alphabet: {JSON.stringify(response?.highest_alphabet)}</p>
-        )}
-      </div>
     </div>
   );
-}
+};
+
+export default App;

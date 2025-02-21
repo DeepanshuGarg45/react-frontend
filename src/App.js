@@ -7,7 +7,7 @@ const App = () => {
   const [selectedFilters, setSelectedFilters] = useState([]);
 
   // API URL (Make sure it's correct)
-  const API_URL = "https://your-backend-url.com/bfhl"; // Change this to your actual backend URL
+  const API_URL = "https://fastapi-backend-pxh3.onrender.com"; // Change this to your actual backend URL
 
   // Function to handle JSON input change
   const handleInputChange = (e) => {

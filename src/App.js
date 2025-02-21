@@ -18,7 +18,8 @@ const App = () => {
   // Validate and send request
   const handleSubmit = async () => {
     try {
-      const parsedData = JSON.parse(jsonInput); // Parse the input JSON
+      const cleanedInput = jsonInput.replace(/[“”]/g, '"'); // Convert curly quotes to straight quotes
+      const parsedData = JSON.parse(cleanedInput);
 
       if (!parsedData.data || !Array.isArray(parsedData.data)) {
         throw new Error("Invalid JSON format. Expected { data: [...] }");
